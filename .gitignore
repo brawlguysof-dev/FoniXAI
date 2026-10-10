@@ -1,4 +1,7 @@
 .env
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
+users.db
+*.db
+static/index.html.backup

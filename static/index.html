@@ -299,10 +299,25 @@ textarea {
     </aside>
 
     <main class="main">
-        <header class="topbar">
-            <button class="mobile-menu" id="menuButton">☰</button>
-            Fonix AI
-        </header>
+        <header class="topbar" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button class="mobile-menu" id="menuButton">☰</button>
+        Fonix AI
+    </div>
+
+    <div id="authArea" style="display:flex;align-items:center;gap:8px;">
+        <a href="/auth/google/login"
+           id="googleLogin"
+           style="background:#4285f4;color:white;padding:9px 12px;border-radius:8px;text-decoration:none;font-size:13px;">
+            Google orqali kirish
+        </a>
+
+        <button id="logoutButton"
+                style="display:none;background:#333;color:white;padding:9px 12px;border:0;border-radius:8px;cursor:pointer;">
+            Chiqish
+        </button>
+    </div>
+</header>
 
         <section class="chat" id="chat">
             <div class="welcome" id="welcome">
@@ -712,6 +727,62 @@ promptBox.addEventListener("input", () => {
     promptBox.style.height = "auto";
     promptBox.style.height = Math.min(promptBox.scrollHeight, 160) + "px";
 });
+
+
+async function updateAuthUI() {
+    const loginButton = document.getElementById("googleLogin");
+    const logoutButton = document.getElementById("logoutButton");
+    const authArea = document.getElementById("authArea");
+
+    try {
+        const response = await fetch("/auth/me", {
+            credentials: "same-origin"
+        });
+        const data = await response.json();
+
+        if (data.logged_in) {
+            loginButton.style.display = "none";
+            logoutButton.style.display = "inline-block";
+
+            let userLabel = document.getElementById("userLabel");
+            if (!userLabel) {
+                userLabel = document.createElement("span");
+                userLabel.id = "userLabel";
+                userLabel.style.cssText =
+                    "color:white;font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;";
+                authArea.prepend(userLabel);
+            }
+
+            userLabel.textContent = data.name || data.email || "Kirdingiz";
+            userLabel.title = data.email || data.name || "";
+        } else {
+            loginButton.style.display = "inline-block";
+            logoutButton.style.display = "none";
+            document.getElementById("userLabel")?.remove();
+        }
+    } catch (error) {
+        console.error("Login holatini tekshirishda xatolik:", error);
+    }
+}
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+    try {
+        const response = await fetch("/auth/logout", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert("Chiqishda xatolik yuz berdi.");
+        }
+    } catch (error) {
+        alert("Server bilan bog‘lanib bo‘lmadi.");
+    }
+});
+
+updateAuthUI();
 
 renderRecent();
 showWelcome();
