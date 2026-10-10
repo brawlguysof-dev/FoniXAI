@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonix AI</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #212121;
+    color: #f5f5f5;
+    height: 100vh;
+}
+
+button, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 255px;
+    flex-shrink: 0;
+    background: #171717;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    color: #fff;
+    font-size: 23px;
+    font-weight: bold;
+    margin: 8px 0 22px;
+}
+
+.new-chat {
+    padding: 12px;
+    border: 1px solid #555;
+    border-radius: 10px;
+    background: transparent;
+    color: white;
+    text-align: left;
+}
+
+.recent-title {
+    color: #aaa;
+    font-size: 13px;
+    margin: 24px 0 10px;
+}
+
+.recent-list {
+    overflow-y: auto;
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.recent-open {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: left;
+    padding: 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #ddd;
+}
+
+.recent-open:hover,
+.recent-open.active {
+    background: #303030;
+}
+
+.delete-chat {
+    border: 0;
+    background: transparent;
+    color: #aaa;
+    padding: 8px;
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    padding: 18px 22px;
+    border-bottom: 1px solid #383838;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 16px;
+}
+
+.welcome {
+    max-width: 720px;
+    margin: 14vh auto 0;
+    text-align: center;
+}
+
+.welcome h1 {
+    font-size: 34px;
+}
+
+.welcome p {
+    color: #aaa;
+}
+
+.message {
+    max-width: 800px;
+    margin: 0 auto 24px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+.message .role {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 7px;
+}
+
+.message .text {
+    white-space: pre-wrap;
+}
+
+.message img {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+.composer-area {
+    padding: 12px 16px 20px;
+}
+
+.composer {
+    max-width: 800px;
+    margin: auto;
+    border: 1px solid #555;
+    border-radius: 18px;
+    padding: 12px;
+    background: #303030;
+}
+
+.preview {
+    display: none;
+    padding: 4px 8px 10px;
+}
+
+.preview img {
+    max-width: 110px;
+    max-height: 100px;
+    border-radius: 8px;
+}
+
+.preview button {
+    vertical-align: top;
+    background: #444;
+    color: white;
+    border: 0;
+    border-radius: 50%;
+    padding: 5px 9px;
+    margin-left: 6px;
+}
+
+.input-row {
+    display: flex;
+    align-items: end;
+    gap: 8px;
+}
+
+textarea {
+    flex: 1;
+    resize: none;
+    min-width: 0;
+    max-height: 160px;
+    padding: 10px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: white;
+}
+
+.icon-button,
+.send-button {
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 13px;
+}
+
+.icon-button {
+    background: #444;
+    color: white;
+}
+
+.send-button {
+    background: white;
+    color: #111;
+    font-weight: bold;
+}
+
+.send-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.note {
+    color: #999;
+    text-align: center;
+    font-size: 11px;
+    margin-top: 10px;
+}
+
+.status {
+    color: #bbb;
+    text-align: center;
+    margin: 10px;
+    font-size: 13px;
+}
+
+.mobile-menu {
+    display: none;
+}
+
+@media (max-width: 650px) {
+    .sidebar {
+        display: none;
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 10;
+        width: 270px;
+    }
+
+    .sidebar.open {
+        display: flex;
+    }
+
+    .mobile-menu {
+        display: inline-block;
+        margin-right: 10px;
+        background: transparent;
+        border: 0;
+        color: white;
+        font-size: 20px;
+    }
+
+    .topbar {
+        padding: 14px;
+    }
+
+    .welcome h1 {
+        font-size: 27px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">✦ Fonix AI</div>
+
+        <button class="new-chat" id="newChat">
+            ＋ Yangi suhbat
+        </button>
+
+        <div class="recent-title">Recent chats / Suhbatlar</div>
+        <div class="recent-list" id="recentList"></div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <button class="mobile-menu" id="menuButton">☰</button>
+            Fonix AI
+        </header>
+
+        <section class="chat" id="chat">
+            <div class="welcome" id="welcome">
+                <h1>Fonix AI'ga xush kelibsiz!</h1>
+                <p>Savolingizni yozing yoki rasm yuboring.</p>
+            </div>
+        </section>
+
+        <div id="status" class="status"></div>
+
+        <div class="composer-area">
+            <div class="composer">
+
+                <div class="preview" id="preview">
+                    <img id="previewImage" alt="Tanlangan rasm">
+                    <button id="removeImage" title="Rasmni olib tashlash">×</button>
+                </div>
+
+                <div class="input-row">
+                    <input
+                        id="fileInput"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        hidden
+                    >
+
+                    <button
+                        class="icon-button"
+                        id="attachButton"
+                        title="Rasm tanlash"
+                    >＋</button>
+
+                    <textarea
+                        id="prompt"
+                        rows="1"
+                        maxlength="4000"
+                        placeholder="Fonix AI'dan so'rang..."
+                    ></textarea>
+
+                    <button class="send-button" id="sendButton">Yuborish</button>
+                </div>
+            </div>
+
+            <div class="note">
+                Fonix AI javoblarida xatolar bo‘lishi mumkin.
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const chatBox = document.getElementById("chat");
+const promptBox = document.getElementById("prompt");
+const sendButton = document.getElementById("sendButton");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+const previewImage = document.getElementById("previewImage");
+const statusBox = document.getElementById("status");
+const recentList = document.getElementById("recentList");
+
+const STORAGE_KEY = "fonix_ai_chats_v2";
+
+let chats = loadChats();
+let currentChatId = null;
+let selectedImage = null;
+let busy = false;
+
+function loadChats() {
+    try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(data) ? data : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveChats() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+    } catch {
+        statusBox.textContent =
+            "Brauzer xotirasi to'ldi. Eski suhbatlarni o'chirib ko'ring.";
+    }
+}
+
+function getCurrentChat() {
+    return chats.find(c => c.id === currentChatId);
+}
+
+function newChat() {
+    currentChatId = null;
+    selectedImage = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+    promptBox.value = "";
+    chatBox.replaceChildren();
+    showWelcome();
+    renderRecent();
+    statusBox.textContent = "";
+    document.getElementById("sidebar").classList.remove("open");
+}
+
+function showWelcome() {
+    const welcome = document.createElement("div");
+    welcome.className = "welcome";
+
+    const title = document.createElement("h1");
+    title.textContent = "Fonix AI'ga xush kelibsiz!";
+
+    const description = document.createElement("p");
+    description.textContent = "Savolingizni yozing yoki rasm yuboring.";
+
+    welcome.append(title, description);
+    chatBox.appendChild(welcome);
+}
+
+function renderRecent() {
+    recentList.replaceChildren();
+
+    chats.forEach(chat => {
+        const row = document.createElement("div");
+        row.className = "recent-item";
+
+        const open = document.createElement("button");
+        open.className = "recent-open";
+        if (chat.id === currentChatId) open.classList.add("active");
+        open.textContent = chat.title || "Yangi suhbat";
+        open.title = open.textContent;
+        open.addEventListener("click", () => openChat(chat.id));
+
+        const remove = document.createElement("button");
+        remove.className = "delete-chat";
+        remove.textContent = "×";
+        remove.title = "Suhbatni o'chirish";
+        remove.addEventListener("click", () => {
+            chats = chats.filter(c => c.id !== chat.id);
+            if (currentChatId === chat.id) newChat();
+            saveChats();
+            renderRecent();
+        });
+
+        row.append(open, remove);
+        recentList.appendChild(row);
+    });
+}
+
+function renderMessage(message) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "message";
+
+    const role = document.createElement("div");
+    role.className = "role";
+    role.textContent = message.role === "user" ? "Siz" : "Fonix AI";
+
+    wrapper.appendChild(role);
+
+    if (message.image_data) {
+        const img = document.createElement("img");
+        img.src = message.image_data;
+        img.alt = "Suhbatga yuborilgan rasm";
+        wrapper.appendChild(img);
+    }
+
+    const text = document.createElement("div");
+    text.className = "text";
+    text.textContent = message.content;
+    wrapper.appendChild(text);
+
+    chatBox.appendChild(wrapper);
+}
+
+function openChat(id) {
+    const selected = chats.find(c => c.id === id);
+    if (!selected) return;
+
+    currentChatId = id;
+    selectedImage = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+
+    chatBox.replaceChildren();
+
+    if (selected.messages.length === 0) {
+        showWelcome();
+    } else {
+        selected.messages.forEach(renderMessage);
+    }
+
+    renderRecent();
+    chatBox.scrollTop = chatBox.scrollHeight;
+    document.getElementById("sidebar").classList.remove("open");
+}
+
+function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith("image/")) {
+            reject(new Error("Rasm faylini tanlang."));
+            return;
+        }
+
+        if (file.size > 12 * 1024 * 1024) {
+            reject(new Error("Rasm 12 MB dan kichik bo'lishi kerak."));
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(new Error("Rasmni o'qib bo'lmadi."));
+
+        reader.onload = () => {
+            const img = new Image();
+
+            img.onerror = () => reject(new Error("Rasm ochilmadi."));
+
+            img.onload = () => {
+                const maxSide = 1100;
+                const scale = Math.min(
+                    1,
+                    maxSide / Math.max(img.width, img.height)
+                );
+
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(img.width * scale));
+                canvas.height = Math.max(1, Math.round(img.height * scale));
+
+                const context = canvas.getContext("2d");
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const data = canvas.toDataURL("image/jpeg", 0.65);
+
+                if (data.length > 1_800_000) {
+                    reject(new Error(
+                        "Rasm hajmi katta. Iltimos, kichikroq rasm tanlang."
+                    ));
+                    return;
+                }
+
+                resolve(data);
+            };
+
+            img.src = reader.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+document.getElementById("attachButton").addEventListener("click", () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    statusBox.textContent = "Rasm tayyorlanmoqda...";
+
+    try {
+        selectedImage = await compressImage(file);
+        previewImage.src = selectedImage;
+        preview.style.display = "block";
+        statusBox.textContent = "";
+    } catch (error) {
+        selectedImage = null;
+        preview.style.display = "none";
+        statusBox.textContent = error.message;
+    }
+});
+
+document.getElementById("removeImage").addEventListener("click", () => {
+    selectedImage = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+});
+
+document.getElementById("newChat").addEventListener("click", newChat);
+
+document.getElementById("menuButton").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+});
+
+async function sendMessage() {
+    if (busy) return;
+
+    const text = promptBox.value.trim();
+
+    if (!text && !selectedImage) {
+        statusBox.textContent = "Savol yozing yoki rasm tanlang.";
+        return;
+    }
+
+    if (!currentChatId) {
+        currentChatId = crypto.randomUUID();
+
+        chats.unshift({
+            id: currentChatId,
+            title: text.slice(0, 40) || "Rasm haqida",
+            messages: [],
+            updatedAt: Date.now()
+        });
+    }
+
+    const current = getCurrentChat();
+
+    const userMessage = {
+        role: "user",
+        content: text || "Ushbu rasmni tahlil qilib bering.",
+        image_data: selectedImage
+    };
+
+    current.messages.push(userMessage);
+    current.updatedAt = Date.now();
+
+    if (current.messages.length === 1) {
+        current.title = text.slice(0, 40) || "Rasm haqida";
+    }
+
+    const imageForRequest = selectedImage;
+
+    selectedImage = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+    promptBox.value = "";
+    promptBox.style.height = "auto";
+
+    chatBox.replaceChildren();
+    current.messages.forEach(renderMessage);
+    renderRecent();
+    saveChats();
+
+    busy = true;
+    sendButton.disabled = true;
+    statusBox.textContent = "Fonix AI javob tayyorlamoqda...";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        // Oxirgi 12 xabar yuboriladi.
+        const history = current.messages.slice(-12).map(m => ({
+            role: m.role,
+            content: m.content,
+            image_data: m.image_data || null
+        }));
+
+        // Model bir so'rovda ko'pi bilan 5 ta rasm oladi.
+        const imageIndexes = [];
+        history.forEach((m, i) => {
+            if (m.image_data) imageIndexes.push(i);
+        });
+
+        if (imageIndexes.length > 5) {
+            const keep = new Set(imageIndexes.slice(-5));
+            history.forEach((m, i) => {
+                if (m.image_data && !keep.has(i)) {
+                    m.image_data = null;
+                }
+            });
+        }
+
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                messages: history
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || "Server xatosi.");
+        }
+
+        current.messages.push({
+            role: "assistant",
+            content: result.reply
+        });
+
+        current.updatedAt = Date.now();
+
+        // Eng yangi suhbat yuqorida turadi.
+        chats.sort((a, b) => b.updatedAt - a.updatedAt);
+
+        saveChats();
+        openChat(currentChatId);
+
+    } catch (error) {
+        statusBox.textContent = "Xatolik: " + error.message;
+    } finally {
+        busy = false;
+        sendButton.disabled = false;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+sendButton.addEventListener("click", sendMessage);
+
+promptBox.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+});
+
+promptBox.addEventListener("input", () => {
+    promptBox.style.height = "auto";
+    promptBox.style.height = Math.min(promptBox.scrollHeight, 160) + "px";
+});
+
+renderRecent();
+showWelcome();
+</script>
+</body>
+</html>
